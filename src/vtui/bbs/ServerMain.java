@@ -18,13 +18,13 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
+import textmode.curses.DefaultCursesFactory;
+import textmode.curses.net.TLSGeneralSocketIO;
+import textmode.curses.net.TelnetServer;
+import textmode.curses.term.io.TelnetIO;
+import textmode.curses.ui.util.SortedList;
 import vtui.bbs.ui.BBSScreenFactory;
 import vtui.bbs.ui.UITheme;
-import fun.useless.curses.DefaultCursesFactory;
-import fun.useless.curses.net.TLSGeneralSocketIO;
-import fun.useless.curses.net.TelnetServer;
-import fun.useless.curses.term.io.TelnetIO;
-import fun.useless.curses.ui.util.SortedList;
 
 @SuppressWarnings("unused")
 public class ServerMain {

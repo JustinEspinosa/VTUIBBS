@@ -1,8 +1,8 @@
 package vtui.bbs.apps.files;
 
+import textmode.curses.application.Application;
+import textmode.curses.application.SingleInstanceApplicationFactory;
 import vtui.bbs.apps.login.UserPrincipal;
-import fun.useless.curses.application.Application;
-import fun.useless.curses.application.SingleInstanceApplicationFactory;
 
 public class FilesApplicationFactory extends SingleInstanceApplicationFactory {
 

@@ -1,28 +1,32 @@
 package vtui.bbs.util;
 
-import vtui.bbs.util.FileBrowser;
-import fun.useless.curses.Curses;
-import fun.useless.curses.application.Application;
-import fun.useless.curses.ui.Dimension;
-import fun.useless.curses.ui.Position;
-import fun.useless.curses.ui.components.Button;
-import fun.useless.curses.ui.components.Label;
-import fun.useless.curses.ui.components.ModalWindow;
-import fun.useless.curses.ui.event.ActionEvent;
-import fun.useless.curses.ui.event.ActionListener;
-import fun.useless.curses.ui.event.SelectionChangeEvent;
-import fun.useless.curses.ui.event.SelectionChangedListener;
+import java.io.File;
 
-public class AbstractFileDialog extends ModalWindow {
+import textmode.curses.Curses;
+import textmode.curses.application.Application;
+import textmode.curses.ui.Dimension;
+import textmode.curses.ui.Position;
+import textmode.curses.ui.components.Button;
+import textmode.curses.ui.components.Label;
+import textmode.curses.ui.components.MessageBox;
+import textmode.curses.ui.components.ModalWindow;
+import textmode.curses.ui.event.ActionEvent;
+import textmode.curses.ui.event.ActionListener;
+import textmode.curses.ui.event.SelectionChangeEvent;
+import textmode.curses.ui.event.SelectionChangedListener;
+import vtui.bbs.util.FileBrowser;
+
+public abstract class AbstractFileDialog extends ModalWindow {
 	
 	private FileBrowser browser;
 	private Button      upOneLevel;
 	private Label       statusBar;
-
-	public AbstractFileDialog(String path, Application app, Curses cs,Position p) {
-		super("Files", app, cs, p, new Dimension(30,15));
-		initComponents(path);
-		notifyDisplayChange();
+	private MessageBox.Result myResult;
+	
+	public AbstractFileDialog(String title, Application app, Curses cs,Position p) {
+		super(title, app, cs, p, new Dimension(15,40));
+		setResizeable(false);
+		initComponents("files");
 	}
 	
 	public FileSystemAdapter getFs(){
@@ -30,9 +34,9 @@ public class AbstractFileDialog extends ModalWindow {
 	}
 	
 	private void initComponents(String path){
-		browser = new FileBrowser(path, curses(), new Position(2,0), getSize().vertical(-3));
+		browser = new FileBrowser(path, curses(), new Position(2,0), getSize().vertical(-5));
 		upOneLevel = new Button("..", curses(), new Position(1,0),4);
-		statusBar  = new Label("",curses(),new Position(getSize().getLines()-1,0),new Dimension(1,getSize().getCols()));
+		statusBar  = new Label("",curses(),new Position(getSize().getLines()-4,0),new Dimension(1,getSize().getCols()));
 		
 		intAddChild(browser);
 		intAddChild(upOneLevel);
@@ -51,13 +55,32 @@ public class AbstractFileDialog extends ModalWindow {
 		});
 	}
 	
+	protected FileBrowser browser(){
+		return browser;
+	}
+	
+	protected int buttonsLine(){
+		return getSize().getLines()-2;
+	}
+	
+	protected void setResult(MessageBox.Result v){
+		myResult = v;
+	}
 
-	public void refresh() {
+	public abstract File getSelectedFile();
+	
+	public MessageBox.Result getResult(){
+		return myResult;
+	}
+	
+	public MessageBox.Result waitForChoice() throws InterruptedException{
+		modalWait();
+		return getResult();
+	}
+	
+	public void refreshFiles() {
 		browser.reload();
 	}
 
-	public String selectedFileName() {
-		return browser.selectedItem().toString();
-	}
 
 }

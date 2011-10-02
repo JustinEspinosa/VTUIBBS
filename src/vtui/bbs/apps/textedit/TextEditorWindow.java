@@ -8,13 +8,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 
-import fun.useless.curses.Curses;
-import fun.useless.curses.application.Application;
-import fun.useless.curses.ui.Dimension;
-import fun.useless.curses.ui.Position;
-import fun.useless.curses.ui.components.MessageBox;
-import fun.useless.curses.ui.components.MultiLineEdit;
-import fun.useless.curses.ui.components.Window;
+import textmode.curses.Curses;
+import textmode.curses.application.Application;
+import textmode.curses.ui.Dimension;
+import textmode.curses.ui.Position;
+import textmode.curses.ui.components.MessageBox;
+import textmode.curses.ui.components.MultiLineEdit;
+import textmode.curses.ui.components.Window;
+
 
 public class TextEditorWindow extends Window {
 
@@ -49,6 +50,16 @@ public class TextEditorWindow extends Window {
 		} catch (IOException e) {
 			MessageBox.informUser("Error", "Could not read everything.", getOwner(), curses());
 		}
+	}
+	
+	public boolean canSave(){
+		return currentFile!=null;
+	}
+	
+	public void saveAs(File f){
+		currentFile = f;
+		setTitle(currentFile.getName());
+		save();
 	}
 	
 	public void save(){

@@ -1,18 +1,18 @@
 package vtui.bbs.apps.files;
 
+import textmode.curses.Curses;
+import textmode.curses.application.Application;
+import textmode.curses.ui.Dimension;
+import textmode.curses.ui.Position;
+import textmode.curses.ui.components.Button;
+import textmode.curses.ui.components.Label;
+import textmode.curses.ui.components.Window;
+import textmode.curses.ui.event.ActionEvent;
+import textmode.curses.ui.event.ActionListener;
+import textmode.curses.ui.event.SelectionChangeEvent;
+import textmode.curses.ui.event.SelectionChangedListener;
 import vtui.bbs.util.FileBrowser;
 import vtui.bbs.util.FileSystemAdapter;
-import fun.useless.curses.Curses;
-import fun.useless.curses.application.Application;
-import fun.useless.curses.ui.Dimension;
-import fun.useless.curses.ui.Position;
-import fun.useless.curses.ui.components.Button;
-import fun.useless.curses.ui.components.Label;
-import fun.useless.curses.ui.components.Window;
-import fun.useless.curses.ui.event.ActionEvent;
-import fun.useless.curses.ui.event.ActionListener;
-import fun.useless.curses.ui.event.SelectionChangeEvent;
-import fun.useless.curses.ui.event.SelectionChangedListener;
 
 public class FileBrowserWindow extends Window {
 	
@@ -59,7 +59,7 @@ public class FileBrowserWindow extends Window {
 		statusBar.setSize(new Dimension(1,getSize().getCols()));
 	}
 
-	public void refresh() {
+	public void refreshFiles() {
 		browser.reload();
 	}
 

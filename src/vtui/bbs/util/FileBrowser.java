@@ -1,12 +1,12 @@
 package vtui.bbs.util;
 
-import fun.useless.curses.Curses;
-import fun.useless.curses.ui.Dimension;
-import fun.useless.curses.ui.Position;
-import fun.useless.curses.ui.components.ListBox;
-import fun.useless.curses.ui.data.ListBoxModel;
-import fun.useless.curses.ui.event.ActionEvent;
-import fun.useless.curses.ui.event.ActionListener;
+import textmode.curses.Curses;
+import textmode.curses.ui.Dimension;
+import textmode.curses.ui.Position;
+import textmode.curses.ui.components.ListBox;
+import textmode.curses.ui.data.ListBoxModel;
+import textmode.curses.ui.event.ActionEvent;
+import textmode.curses.ui.event.ActionListener;
 
 public class FileBrowser extends ListBox implements ActionListener {
 

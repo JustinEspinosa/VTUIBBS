@@ -2,9 +2,11 @@ package vtui.bbs.apps.login;
 
 import java.security.PrivilegedAction;
 
-import fun.useless.curses.ui.UiEventProcessor;
-import fun.useless.curses.ui.components.RootPlane;
-import fun.useless.curses.ui.event.UiEvent;
+import textmode.curses.ui.UiEventProcessor;
+import textmode.curses.ui.components.MessageBox;
+import textmode.curses.ui.components.RootPlane;
+import textmode.curses.ui.event.UiEvent;
+
 
 public class PrivUiEventProcesser extends UiEventProcessor {
 	UserPrincipal logonUser;
@@ -18,7 +20,11 @@ public class PrivUiEventProcesser extends UiEventProcessor {
 	public void run() {
 		logonUser.does(new PrivilegedAction<Object>() {
 			public Object run() {
-				PrivUiEventProcesser.super.run();
+				try{
+					PrivUiEventProcesser.super.run();
+				}catch(Exception e){
+					MessageBox.informUser("Unknwon error", "Operation failed:\n"+e.getClass().getName()+"\n"+e.getMessage(), app(), curses());
+				}
 				return null;
 			}
 		});

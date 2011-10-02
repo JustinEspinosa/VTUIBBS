@@ -22,11 +22,6 @@ public class LdapData {
 	private String ldapHost;
 	private String searchBase;
 
-	public LdapData(){
-		this.ldapHost = "ldap://scrooge.duck.home:389";
-		this.searchBase = "cn=users,dc=scrooge,dc=duck,dc=home";
-	}
-
 	public LdapData( String host, String dn){
 		this.ldapHost = host;
 		this.searchBase = dn;

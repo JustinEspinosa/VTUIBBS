@@ -1,8 +1,8 @@
 package vtui.bbs.apps.chat;
 
+import textmode.curses.application.Application;
+import textmode.curses.ui.Dimension;
 import vtui.bbs.apps.login.UserPrincipal;
-import fun.useless.curses.application.Application;
-import fun.useless.curses.ui.Dimension;
 
 public class Chat extends Application {
 

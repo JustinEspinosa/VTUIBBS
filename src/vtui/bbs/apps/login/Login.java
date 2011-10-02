@@ -3,32 +3,38 @@ package vtui.bbs.apps.login;
 
 import javax.security.auth.login.LoginException;
 
+import textmode.curses.application.RootApplication;
+import textmode.curses.application.Screen;
+import textmode.curses.ui.Dimension;
+import textmode.curses.ui.Position;
+import textmode.curses.ui.Rectangle;
+import textmode.curses.ui.UiEventProcessor;
+import textmode.curses.ui.UiEventProcessorFactory;
+import textmode.curses.ui.components.Button;
+import textmode.curses.ui.components.Label;
+import textmode.curses.ui.components.LineEdit;
+import textmode.curses.ui.components.MenuItem;
+import textmode.curses.ui.components.MessageBox;
+import textmode.curses.ui.components.PopUp;
+import textmode.curses.ui.components.RootPlane;
+import textmode.curses.ui.components.Window;
+import textmode.curses.ui.event.ActionEvent;
+import textmode.curses.ui.event.ActionListener;
+import textmode.curses.ui.event.RedrawEvent;
+import textmode.curses.ui.event.UiEvent;
 import vtui.bbs.apps.chat.Chat;
 import vtui.bbs.apps.chat.ChatApplicationFactory;
 import vtui.bbs.apps.files.Files;
 import vtui.bbs.apps.files.FilesApplicationFactory;
+import vtui.bbs.apps.look.LnFFactory;
+import vtui.bbs.apps.look.LookNFeel;
+import vtui.bbs.apps.look.ThemeRepository;
 import vtui.bbs.apps.textedit.TextEditor;
 import vtui.bbs.apps.textedit.TextEditorFactory;
 import vtui.bbs.apps.userlist.UserList;
 import vtui.bbs.apps.userlist.UserListApplicationFactory;
-import fun.useless.curses.application.RootApplication;
-import fun.useless.curses.ui.Dimension;
-import fun.useless.curses.ui.Position;
-import fun.useless.curses.ui.Rectangle;
-import fun.useless.curses.ui.UiEventProcessor;
-import fun.useless.curses.ui.UiEventProcessorFactory;
-import fun.useless.curses.ui.components.Button;
-import fun.useless.curses.ui.components.Label;
-import fun.useless.curses.ui.components.LineEdit;
-import fun.useless.curses.ui.components.MenuItem;
-import fun.useless.curses.ui.components.MessageBox;
-import fun.useless.curses.ui.components.PopUp;
-import fun.useless.curses.ui.components.RootPlane;
-import fun.useless.curses.ui.components.Window;
-import fun.useless.curses.ui.event.ActionEvent;
-import fun.useless.curses.ui.event.ActionListener;
-import fun.useless.curses.ui.event.RedrawEvent;
-import fun.useless.curses.ui.event.UiEvent;
+import vtui.bbs.session.BBSSession;
+import vtui.bbs.session.BBSSessionUtils;
 
 public class Login extends RootApplication implements ActionListener{
 
@@ -73,14 +79,14 @@ public class Login extends RootApplication implements ActionListener{
 	
 	private LoginWindow   prompt;
 	private UserPrincipal logonUser;
+	private BBSSession    session;
 	
 	public Login(){
 	}	
 	
 	@Override
 	public void stop() {
-		//TODO: release thingies
-		
+		BBSSessionUtils.saveSession(session);
 		getWindowManager().stop();
 	}
 
@@ -127,6 +133,18 @@ public class Login extends RootApplication implements ActionListener{
 			showWindow(prompt);
 			return;
 		}else{
+			
+			session = BBSSessionUtils.loadSession(logonUser.getName());
+			Screen.currentSession().put("BBSSession", session);
+			
+			if(session.uiTheme.length()>0){
+				try{
+					ThemeRepository repository = new ThemeRepository();
+					repository.useTheme(getWindowManager(), session.uiTheme);
+					//This task is not important. Eat all the exceptions.
+				}catch(Exception exp){}
+			}
+			
 			getWindowManager().setProcessorFactory(new UiEventProcessorFactory() {
 				public UiEventProcessor createProcessor(UiEvent e, RootPlane<?> plane) {
 					return new PrivUiEventProcesser(logonUser, e, plane);
@@ -146,7 +164,11 @@ public class Login extends RootApplication implements ActionListener{
 			
 			TextEditorFactory text = new TextEditorFactory();
 			getWindowManager().addToAppPool(TextEditor.class,text);
-			getWindowManager().submitApplicationToMenu(text);		
+			getWindowManager().submitApplicationToMenu(text);
+			
+			LnFFactory lnf = new LnFFactory();
+			getWindowManager().addToAppPool(LookNFeel.class,lnf);
+			getWindowManager().submitApplicationToMenu(lnf);	
 			
 			startBBS();
 			super.start();

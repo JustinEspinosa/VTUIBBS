@@ -1,17 +1,17 @@
 package vtui.bbs.apps.chat;
 
-import fun.useless.curses.Curses;
-import fun.useless.curses.application.Application;
-import fun.useless.curses.ui.Dimension;
-import fun.useless.curses.ui.Position;
-import fun.useless.curses.ui.components.Button;
-import fun.useless.curses.ui.components.LineEdit;
-import fun.useless.curses.ui.components.ListBox;
-import fun.useless.curses.ui.components.MultiLineEdit;
-import fun.useless.curses.ui.components.Window;
-import fun.useless.curses.ui.data.ListBoxModel;
-import fun.useless.curses.ui.event.ActionEvent;
-import fun.useless.curses.ui.event.ActionListener;
+import textmode.curses.Curses;
+import textmode.curses.application.Application;
+import textmode.curses.ui.Dimension;
+import textmode.curses.ui.Position;
+import textmode.curses.ui.components.Button;
+import textmode.curses.ui.components.LineEdit;
+import textmode.curses.ui.components.ListBox;
+import textmode.curses.ui.components.MultiLineEdit;
+import textmode.curses.ui.components.Window;
+import textmode.curses.ui.data.ListBoxModel;
+import textmode.curses.ui.event.ActionEvent;
+import textmode.curses.ui.event.ActionListener;
 
 public class ChatWindow extends Window implements ChatClient{
 	
@@ -51,16 +51,16 @@ public class ChatWindow extends Window implements ChatClient{
 		
 		model = new UserListModel();
 		
-		userList = new ListBox(model, curses(), new Position(1,d.getCols()-11), new Dimension(d.getLines()-4,11));
+		userList = new ListBox(model, curses(), new Position(1,d.getCols()-11), new Dimension(d.getLines()-3,11));
 		
-		send = new Button("send",curses(),new Position(d.getLines()-2,d.getCols()-9),8);
+		send = new Button("send",curses(),new Position(d.getLines()-2,d.getCols()-8),8);
 		send.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				post();
 			}
 		});
 		
-		feed = new MultiLineEdit(curses(),new Position(1,1),d.mutate(-4,-13) );
+		feed = new MultiLineEdit(curses(),new Position(1,1),d.mutate(-3,-13) );
 		feed.setReadOnly(true);
 		input = new LineEdit(curses(),new Position(d.getLines()-2,1),d.getCols()-10);
 		
@@ -105,12 +105,12 @@ public class ChatWindow extends Window implements ChatClient{
 	
 	@Override
 	protected void userResized() {
-		feed.setSize(getSize().mutate(-4,-13));
+		feed.setSize(getSize().mutate(-3,-13));
 		input.setPosition(new Position(getSize().getLines()-2,1));
 		input.setSize(new Dimension(1,getSize().getCols()-10));
-		send.setPosition(new Position(getSize().getLines()-2,getSize().getCols()-9));
+		send.setPosition(new Position(getSize().getLines()-2,getSize().getCols()-8));
 		userList.setPosition(new Position(1,getSize().getCols()-11));
-		userList.setSize(new Dimension(getSize().getLines()-4,11));
+		userList.setSize(new Dimension(getSize().getLines()-3,11));
 	}
 
 

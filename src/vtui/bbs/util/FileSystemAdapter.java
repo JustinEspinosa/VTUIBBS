@@ -81,7 +81,7 @@ public class FileSystemAdapter {
 		return reducePath(cwd+file);
 	}
 
-	public File getFile(String file) throws IOException{
+	public File getFile(String file){
 		return realFile(reducePath(file));
 	}
 	
@@ -123,28 +123,25 @@ public class FileSystemAdapter {
 		return tree;
 	}
 	
-	public boolean copyToCwd(String from){
+	public boolean copyToCwd(String from) throws IOException{
 		File f1 = realFile(reducePath(from));
 		File f2 = realFile(absPath(f1.getName()));
 		
-		try{
-			if(f2.createNewFile()){
-				InputStream  is = new FileInputStream(f1);
-				OutputStream os = new FileOutputStream(f2);
+		if(f2.createNewFile()){
+			InputStream  is = new FileInputStream(f1);
+			OutputStream os = new FileOutputStream(f2);
+			
+			int len = 0;
+			byte[] data = new byte[1024];
+			do{
+				len = is.read(data);
+				if(len>0)
+					os.write(data,0,len);
+			}while(len > 0);
 				
-				int len = 0;
-				byte[] data = new byte[1024];
-				do{
-					len = is.read(data);
-					if(len>0)
-						os.write(data,0,len);
-				}while(len > 0);
-				
-				return true;
-			}
-		}catch(IOException e){
-			e.printStackTrace();
+			return true;
 		}
+			
 		return false;
 	}
 	
@@ -156,13 +153,8 @@ public class FileSystemAdapter {
 		return realFile(absPath(name)).mkdir();
 	}
 	
-	public boolean create(String name){
-		try {
-			return realFile(absPath(name)).createNewFile();
-		} catch (IOException e) {
-			e.printStackTrace();
-			return false;
-		}
+	public boolean create(String name) throws IOException{
+		return realFile(absPath(name)).createNewFile();
 	}
 	
 	public void cdabs(String path){

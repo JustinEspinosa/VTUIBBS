@@ -4,15 +4,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import textmode.curses.Curses;
+import textmode.curses.application.Application;
+import textmode.curses.ui.Dimension;
+import textmode.curses.ui.Position;
+import textmode.curses.ui.components.ListBox;
+import textmode.curses.ui.components.Window;
+import textmode.curses.ui.data.ListBoxModel;
 import vtui.bbs.apps.login.LdapData;
 
-import fun.useless.curses.Curses;
-import fun.useless.curses.application.Application;
-import fun.useless.curses.ui.Dimension;
-import fun.useless.curses.ui.Position;
-import fun.useless.curses.ui.components.ListBox;
-import fun.useless.curses.ui.components.Window;
-import fun.useless.curses.ui.data.ListBoxModel;
 
 public class UserListWindow extends Window {
 	
@@ -42,12 +42,14 @@ public class UserListWindow extends Window {
 		
 	}
 	
-	private LdapData ldap = new LdapData();
+	private LdapData ldapData;
 	private ListBox list;
 
-	public UserListWindow(Application app,Curses cs, Dimension dimension) {
+	public UserListWindow(LdapData ldap,Application app,Curses cs, Dimension dimension) {
 		super("User list", app, cs,app.getWindowManager().getNextWindowPosition(), dimension);
-		List<Map<String, Object>> users = ldap.getUserList();
+		
+		ldapData = ldap;
+		List<Map<String, Object>> users = ldapData.getUserList();
 		if(users==null)
 			users = new Vector<Map<String,Object>>();
 		

@@ -1,7 +1,7 @@
 package vtui.bbs.apps.textedit;
 
-import fun.useless.curses.application.Application;
-import fun.useless.curses.application.SingleInstanceApplicationFactory;
+import textmode.curses.application.Application;
+import textmode.curses.application.SingleInstanceApplicationFactory;
 
 public class TextEditorFactory extends SingleInstanceApplicationFactory {
 	

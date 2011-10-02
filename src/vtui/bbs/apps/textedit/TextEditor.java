@@ -2,13 +2,17 @@ package vtui.bbs.apps.textedit;
 
 import java.io.File;
 
-import fun.useless.curses.application.Application;
-import fun.useless.curses.ui.Dimension;
-import fun.useless.curses.ui.components.MenuItem;
-import fun.useless.curses.ui.components.PopUp;
-import fun.useless.curses.ui.components.Window;
-import fun.useless.curses.ui.event.ActionEvent;
-import fun.useless.curses.ui.event.ActionListener;
+import textmode.curses.application.Application;
+import textmode.curses.ui.Dimension;
+import textmode.curses.ui.components.MenuItem;
+import textmode.curses.ui.components.PopUp;
+import textmode.curses.ui.components.Window;
+import textmode.curses.ui.components.MessageBox.Result;
+import textmode.curses.ui.event.ActionEvent;
+import textmode.curses.ui.event.ActionListener;
+import vtui.bbs.util.FileOpenDialog;
+import vtui.bbs.util.FileSaveDialog;
+
 
 public class TextEditor extends Application {
 
@@ -34,7 +38,14 @@ public class TextEditor extends Application {
 			}
 		});
 		
+		tmpItem = new MenuItem("Open",curses());
+		fMenu.addItem(tmpItem);
 		
+		tmpItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				open();
+			}
+		});
 		
 		tmpItem = new MenuItem("Save",curses());
 		fMenu.addItem(tmpItem);
@@ -44,10 +55,28 @@ public class TextEditor extends Application {
 			}
 		});
 		
-		
+		tmpItem = new MenuItem("Save as...",curses());
+		fMenu.addItem(tmpItem);
+		tmpItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				saveAs();
+			}
+		});
 		
 		
 		getMenuBar().addPopUp("File", fMenu);
+		
+		PopUp wMenu = getWindowManager().newPopUp(30);
+		tmpItem = new MenuItem("Close",curses());
+		wMenu.addItem(tmpItem);
+		
+		tmpItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				closeCurrent();
+			}
+		});
+		
+		getMenuBar().addPopUp("Window", wMenu);
 	}
 	
 	private TextEditorWindow newWindow(){
@@ -72,10 +101,39 @@ public class TextEditor extends Application {
 		return null;
 	}
 	
-	private void save(){
+	private void closeCurrent(){
 		TextEditorWindow win = intGetTopWin();
 		if(win!=null)
-			win.save();
+			win.close();
+	}
+	
+	private void saveAs() {
+		TextEditorWindow win = intGetTopWin();
+		if(win==null) return;
+		
+		FileSaveDialog dialog = FileSaveDialog.queryFileName("Save",this, curses());
+		if(dialog.getResult() == Result.OK)
+			doSaveAs(win,dialog.getSelectedFile());
+	}
+	
+	private void doSaveAs(TextEditorWindow win,File selectedFile) {
+		win.saveAs(selectedFile);
+	}
+
+	private void save(){
+		TextEditorWindow win = intGetTopWin();
+		if(win!=null){
+			if(win.canSave())
+				win.save();
+			else
+				saveAs();
+		}
+	}
+	
+	private void open(){
+		FileOpenDialog dialog = FileOpenDialog.trySelect("Open",this, curses());
+		if(dialog.getResult() == Result.OK)
+			openFile(dialog.getSelectedFile());
 	}
 	
 	public void openFile(File f){

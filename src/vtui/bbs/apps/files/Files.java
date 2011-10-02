@@ -3,25 +3,25 @@ package vtui.bbs.apps.files;
 import java.io.File;
 import java.io.IOException;
 
+import textmode.curses.application.Application;
+import textmode.curses.ui.Dimension;
+import textmode.curses.ui.Position;
+import textmode.curses.ui.components.Button;
+import textmode.curses.ui.components.Label;
+import textmode.curses.ui.components.LineEdit;
+import textmode.curses.ui.components.MenuItem;
+import textmode.curses.ui.components.MessageBox;
+import textmode.curses.ui.components.ModalWindow;
+import textmode.curses.ui.components.PopUp;
+import textmode.curses.ui.components.Window;
+import textmode.curses.ui.components.MessageBox.ButtonType;
+import textmode.curses.ui.components.MessageBox.Result;
+import textmode.curses.ui.event.ActionEvent;
+import textmode.curses.ui.event.ActionListener;
+import textmode.xfer.ZModem;
 import vtui.bbs.apps.login.UserPrincipal;
 import vtui.bbs.apps.textedit.TextEditor;
 
-import fun.useless.curses.application.Application;
-import fun.useless.curses.ui.Dimension;
-import fun.useless.curses.ui.Position;
-import fun.useless.curses.ui.components.Button;
-import fun.useless.curses.ui.components.Label;
-import fun.useless.curses.ui.components.LineEdit;
-import fun.useless.curses.ui.components.MenuItem;
-import fun.useless.curses.ui.components.MessageBox;
-import fun.useless.curses.ui.components.MessageBox.ButtonType;
-import fun.useless.curses.ui.components.MessageBox.Result;
-import fun.useless.curses.ui.components.ModalWindow;
-import fun.useless.curses.ui.components.PopUp;
-import fun.useless.curses.ui.components.Window;
-import fun.useless.curses.ui.event.ActionEvent;
-import fun.useless.curses.ui.event.ActionListener;
-import fun.useless.xfer.ZModem;
 
 public class Files extends Application {
 	
@@ -137,16 +137,23 @@ public class Files extends Application {
 		cb.put(win.getFs().absPath(win.selectedFileName()));
 	}
 	
+	private String dialogException(Exception e){
+		return e.getClass()+"\n"+e.getMessage();
+	}
+	
 	private void paste(){
 		FileBrowserWindow win = intGetTopWin();
 		
 		String n= cb.get();
 		
 		if(n!=null){
-			if(!win.getFs().copyToCwd(n))
-				MessageBox.informUser("Paste", "Operation failed", Files.this, curses());
-			else
-				win.refresh();
+			try{
+				if(!win.getFs().copyToCwd(n))
+					MessageBox.informUser("Paste", "Operation failed", Files.this, curses());
+			}catch(Exception e){
+				MessageBox.informUser("Paste", "Operation failed\n"+dialogException(e), Files.this, curses());				
+			}
+			win.refreshFiles();
 		}
 	}
 	
@@ -158,7 +165,7 @@ public class Files extends Application {
 			if(!win.getFs().delete(win.selectedFileName()))
 				MessageBox.informUser("Delete", "Operation failed", Files.this, curses());
 			else
-				win.refresh();
+				win.refreshFiles();
 			
 		}
 	}
@@ -168,10 +175,15 @@ public class Files extends Application {
 			
 		String n = getInput("Name?");
 		if(n!=null){
-			if(!win.getFs().create(n))
-				MessageBox.informUser("Create file", "Operation failed", Files.this, curses());
-			else
-				win.refresh();
+			
+			try{
+				if(!win.getFs().create(n))
+					MessageBox.informUser("Create file", "Operation failed", Files.this, curses());
+			}catch(Exception e){
+				MessageBox.informUser("Create file", "Operation failed\n"+dialogException(e), Files.this, curses());				
+			}
+			
+			win.refreshFiles();
 		}
 
 	}
@@ -183,7 +195,7 @@ public class Files extends Application {
 			if(!win.getFs().mkdir(n))
 				MessageBox.informUser("Create direcotry", "Operation failed", Files.this, curses());
 			else
-				win.refresh();
+				win.refreshFiles();
 		}
 	}
 	
@@ -282,7 +294,7 @@ public class Files extends Application {
 				}catch(IOException ioe){
 					ioe.printStackTrace();
 				}
-				win.refresh();
+				win.refreshFiles();
 				getWindowManager().resume();
 			}
 		});
@@ -302,7 +314,7 @@ public class Files extends Application {
 				}catch(IOException ioe){
 					ioe.printStackTrace();
 				}
-				win.refresh();
+				win.refreshFiles();
 				getWindowManager().resume();
 			}
 		});
@@ -314,14 +326,8 @@ public class Files extends Application {
 	private void editFile() {
 		FileBrowserWindow win = intGetTopWin();
 		if(win!=null){
-			try {
-				File f = win.getFs().getFile(win.selectedFileName());
-				getWindowManager().getApplication(TextEditor.class).openFile(f);
-				
-			} catch (IOException e) {
-				MessageBox.informUser("Error", "Unknwon error", this, curses());
-
-			}
+			File f = win.getFs().getFile(win.selectedFileName());
+			getWindowManager().getApplication(TextEditor.class).openFile(f);
 		}
 	}
 
