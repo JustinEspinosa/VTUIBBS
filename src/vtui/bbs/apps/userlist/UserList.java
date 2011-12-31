@@ -4,7 +4,7 @@ import textmode.curses.application.Application;
 import textmode.curses.application.Screen;
 import textmode.curses.ui.Dimension;
 import vtui.bbs.apps.login.DomainParameters;
-import vtui.bbs.apps.login.LdapData;
+import vtui.bbs.util.domain.LdapData;
 
 public class UserList extends Application {
 

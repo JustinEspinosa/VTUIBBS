@@ -1,12 +1,12 @@
 package vtui.bbs.apps.textedit;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.StringReader;
+import java.io.Writer;
 
 import textmode.curses.Curses;
 import textmode.curses.application.Application;
@@ -15,12 +15,13 @@ import textmode.curses.ui.Position;
 import textmode.curses.ui.components.MessageBox;
 import textmode.curses.ui.components.MultiLineEdit;
 import textmode.curses.ui.components.Window;
+import textmode.util.FileAdapter;
 
 
 public class TextEditorWindow extends Window {
 
 	private MultiLineEdit textContent;
-	private File currentFile = null;
+	private FileAdapter currentFile = null;
 	
 	public TextEditorWindow(String title, Application app,Curses cs, Position position, Dimension dimension) {
 		super(title, app,cs, position, dimension);
@@ -31,9 +32,9 @@ public class TextEditorWindow extends Window {
 		
 	}
 	
-	public void load(File f){
+	public void load(FileAdapter f){
 		try {
-			BufferedReader r = new BufferedReader(new FileReader(f));
+			BufferedReader r = new BufferedReader(new InputStreamReader(f.getInputStream()));
 			String l;
 			
 			if((l = r.readLine())!=null)
@@ -56,7 +57,7 @@ public class TextEditorWindow extends Window {
 		return currentFile!=null;
 	}
 	
-	public void saveAs(File f){
+	public void saveAs(FileAdapter f){
 		currentFile = f;
 		setTitle(currentFile.getName());
 		save();
@@ -72,7 +73,7 @@ public class TextEditorWindow extends Window {
 		
 		StringReader sr = new StringReader(textContent.getText());
 		try {
-			FileWriter fw = new FileWriter(currentFile);
+			Writer fw = new OutputStreamWriter(currentFile.getOutputStream(false));
 			int c;
 			while( (c=sr.read()) != -1)
 				fw.write(c);

@@ -13,10 +13,18 @@ public class DomainParameters extends PropertyList{
 	
 	@Property(persistant=true)
 	public String ldapBaseDN = "";
+
+	@Property(persistant=true)
+	public String appleSaslHost = "";
+	
+	@Property(persistant=true)
+	public String appleSaslPort = "";
+	
+	@Property(persistant=true)
+	public String filesBase = "";
 	
 	public static DomainParameters fromFile(String pathName){
-		XMLPersistenceParameters params = new XMLPersistenceParameters();
-		params.pathName = pathName;
+		XMLPersistenceParameters params = new XMLPersistenceParameters(pathName);
 		XMLPListPersistor<DomainParameters> persistor = new XMLPListPersistor<DomainParameters>(params);
 		try {
 			return persistor.read(new DomainParameters());

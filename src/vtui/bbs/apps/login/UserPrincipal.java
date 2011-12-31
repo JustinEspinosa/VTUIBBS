@@ -88,6 +88,10 @@ public class UserPrincipal implements Principal{
 		      else return n;
 	}
 	
+	public Subject subject(){
+		return context().getSubject();
+	}
+	
 	public <T> T does(PrivilegedAction<T> action){
 		return Subject.doAs(context().getSubject(),action);
 	}

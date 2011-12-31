@@ -1,4 +1,4 @@
-package vtui.bbs.apps.login;
+package vtui.bbs.util.domain;
 
 
 import java.util.HashMap;
@@ -26,12 +26,75 @@ public class LdapData {
 		this.ldapHost = host;
 		this.searchBase = dn;
 	}
+	
+	private static String APPLE_PASSWORD_SERVER = "ApplePasswordServer";
+	@SuppressWarnings("unchecked")
+	public String getPWServerAuthority(String user){
+		String returnedAtts[] = { "authAuthority" };
+		Map<String,Object> attrs =  getAttrs(user,returnedAtts);
+		Object o = attrs.get("authAuthority");
+		if(o instanceof NamingEnumeration<?>){
+			try{
+				NamingEnumeration<String> e = (NamingEnumeration<String>)o;
+				while(e.hasMore()){
+					String val = e.next();
+					int i = val.indexOf(APPLE_PASSWORD_SERVER);
+					if(i>=0){
+						return val;
+					}
+				}
+			}catch(NamingException ne){
+				ne.printStackTrace();
+			}
+		}
+		return null;
+	}
+
+	public String getPWServerUserID(String user){
+		String val = getPWServerAuthority(user);
+		if(val!=null){
+			int  i = val.indexOf(APPLE_PASSWORD_SERVER);
+			String sub = val.substring(i+APPLE_PASSWORD_SERVER.length()+1);
+			return sub.substring(0,sub.indexOf(","));
+		}
+		return user;
+	}
 
 	public Map<String,Object> getFullName(String user){
 		String returnedAtts[] ={ "sn", "givenName" };
 		return getAttrs(user,returnedAtts);
 	}
   
+	@SuppressWarnings("unchecked")
+	public String getServiceInfo(String computer){
+		String returnedAtts[] = { "apple-serviceinfo" };
+		Map<String,Object> attrs =  getComputerAttrs(computer,returnedAtts);
+		Object o = attrs.get("apple-serviceinfo");
+		if(o instanceof NamingEnumeration<?>){
+			try{
+				NamingEnumeration<String> e = (NamingEnumeration<String>)o;
+				if(e.hasMore())
+					return e.next();
+			}catch(NamingException ne){
+				ne.printStackTrace();
+			}
+			return null;
+		}else{
+			return o.toString();
+		}
+		
+	}
+	
+	private Map<String,Object> getComputerAttrs(String computer, String[] returnedAtts){
+		String searchFilter = "(&(objectClass=apple-computer)(cn=" + computer + "))";
+		List<Map<String,Object>> list = searchLdap(searchFilter,returnedAtts);
+		if(list.size()>0)
+			return list.get(0);
+		
+		return null;
+	}
+  
+	
 	private Map<String,Object> getAttrs(String user, String[] returnedAtts){
 		String searchFilter = "(&(objectClass=person)(uid=" + user + "))";
 		List<Map<String,Object>> list = searchLdap(searchFilter,returnedAtts);
@@ -55,6 +118,7 @@ public class LdapData {
 		//Create the search controls
 		SearchControls searchCtls = new SearchControls();
 		searchCtls.setReturningAttributes(returnedAtts);
+		searchCtls.setCountLimit(0);
 		
 		//Specify the search scope
 		searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -84,7 +148,10 @@ public class LdapData {
 		    	
 					while (ne.hasMore()){
 						Attribute attr = ne.next();
-						amap.put(attr.getID(), attr.get());
+						if(attr.size()==1)
+							amap.put(attr.getID(), attr.get());
+						else
+							amap.put(attr.getID(), attr.getAll());
 					}
 		      
 					ne.close();

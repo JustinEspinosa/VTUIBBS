@@ -1,9 +1,11 @@
 package vtui.bbs.apps.files;
 
-import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import textmode.curses.application.Application;
+import textmode.curses.application.Screen;
 import textmode.curses.ui.Dimension;
 import textmode.curses.ui.Position;
 import textmode.curses.ui.components.Button;
@@ -18,8 +20,11 @@ import textmode.curses.ui.components.MessageBox.ButtonType;
 import textmode.curses.ui.components.MessageBox.Result;
 import textmode.curses.ui.event.ActionEvent;
 import textmode.curses.ui.event.ActionListener;
+import textmode.util.FileAdapter;
 import textmode.xfer.ZModem;
+import vtui.bbs.apps.login.DomainParameters;
 import vtui.bbs.apps.login.UserPrincipal;
+import vtui.bbs.apps.pic.PictureViewer;
 import vtui.bbs.apps.textedit.TextEditor;
 
 
@@ -76,12 +81,13 @@ public class Files extends Application {
 		
 	}
 	
-	
+	private DomainParameters domain;
 	private FileClipBoard cb = new FileClipBoard();
 	private UserPrincipal logonUser;
 	
 	public Files(UserPrincipal user){
 		logonUser = user;
+		domain = Screen.currentSession().getAsChecked("BBSDomain", DomainParameters.class);
 	}
 	
 	
@@ -95,8 +101,19 @@ public class Files extends Application {
 	}
 	
 	private void newWindow(){
-		FileBrowserWindow myWindow = new FileBrowserWindow("/",this, curses(),nextPosition(),new Dimension(10, 40));
-		showWindow(myWindow);		
+		 
+		try {
+			FileBrowserWindow myWindow = new FileBrowserWindow(new URL(domain.filesBase),this, 
+					                                curses(),nextPosition(),getWindowManager().percentOfScreen(0.5));
+			showWindow(myWindow);
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		} catch (InstantiationException e) {
+			throw new RuntimeException(e);
+		} catch (IllegalAccessException e) {
+			throw new RuntimeException(e);
+		}
+				
 	}
 	
 	private boolean confirm(String prompt){
@@ -229,6 +246,15 @@ public class Files extends Application {
 			}
 		});
 		
+		MenuItem prev = new MenuItem("Preview picture", curses());
+		file.addItem(prev);
+		
+		prev.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				previewPicture();
+			}
+		});
+		
 		MenuItem mkd = new MenuItem("Create directory", curses());
 		file.addItem(mkd);
 		
@@ -322,11 +348,20 @@ public class Files extends Application {
 		getMenuBar().addPopUp("ZModem", zm);
 
 	}
+	
+
+	private void previewPicture() {
+		FileBrowserWindow win = intGetTopWin();
+		if(win!=null){
+			FileAdapter f = win.getFs().getFile(win.selectedFileName());
+			getWindowManager().getApplication(PictureViewer.class).openFile(f);
+		}
+	}
 
 	private void editFile() {
 		FileBrowserWindow win = intGetTopWin();
 		if(win!=null){
-			File f = win.getFs().getFile(win.selectedFileName());
+			FileAdapter f = win.getFs().getFile(win.selectedFileName());
 			getWindowManager().getApplication(TextEditor.class).openFile(f);
 		}
 	}

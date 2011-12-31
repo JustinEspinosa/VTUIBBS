@@ -1,5 +1,7 @@
 package vtui.bbs.apps.files;
 
+import java.net.URL;
+
 import textmode.curses.Curses;
 import textmode.curses.application.Application;
 import textmode.curses.ui.Dimension;
@@ -20,9 +22,9 @@ public class FileBrowserWindow extends Window {
 	private Button      upOneLevel;
 	private Label       statusBar;
 
-	public FileBrowserWindow(String path, Application app, Curses cs,Position p, Dimension d) {
+	public FileBrowserWindow(URL url, Application app, Curses cs,Position p, Dimension d) throws InstantiationException, IllegalAccessException {
 		super("Files", app, cs, p, d);
-		initComponents(path);
+		initComponents(url);
 		notifyDisplayChange();
 	}
 	
@@ -30,8 +32,8 @@ public class FileBrowserWindow extends Window {
 		return browser.getFs();
 	}
 	
-	private void initComponents(String path){
-		browser = new FileBrowser(path, curses(), new Position(2,0), getSize().vertical(-3));
+	private void initComponents(URL url) throws InstantiationException, IllegalAccessException{
+		browser = new FileBrowser(url, curses(), new Position(2,0), getSize().vertical(-3));
 		upOneLevel = new Button("..", curses(), new Position(1,0),4);
 		statusBar  = new Label("",curses(),new Position(getSize().getLines()-1,0),new Dimension(1,getSize().getCols()));
 		
@@ -56,6 +58,7 @@ public class FileBrowserWindow extends Window {
 	@Override
 	protected void userResized() {
 		browser.setSize(getSize().vertical(-3));
+		statusBar.setPosition(new Position(getSize().getLines()-1,0));
 		statusBar.setSize(new Dimension(1,getSize().getCols()));
 	}
 

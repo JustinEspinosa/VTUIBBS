@@ -1,7 +1,5 @@
 package vtui.bbs.util;
 
-import java.io.File;
-
 import textmode.curses.Curses;
 import textmode.curses.application.Application;
 import textmode.curses.ui.Position;
@@ -10,6 +8,7 @@ import textmode.curses.ui.components.LineEdit;
 import textmode.curses.ui.components.MessageBox;
 import textmode.curses.ui.event.ActionEvent;
 import textmode.curses.ui.event.ActionListener;
+import textmode.util.FileAdapter;
 
 
 public class FileSaveDialog extends AbstractFileDialog {
@@ -17,7 +16,7 @@ public class FileSaveDialog extends AbstractFileDialog {
 	private Button okButton;
 	private Button cancelButton;
 	private LineEdit fName;
-	private File selected = null;
+	private FileAdapter selected = null;
 	
 	public FileSaveDialog(String title, Application app, Curses cs, Position p) {
 		super(title, app, cs, p);
@@ -67,7 +66,7 @@ public class FileSaveDialog extends AbstractFileDialog {
 	}
 	
 	@Override
-	public File getSelectedFile() {
+	public FileAdapter getSelectedFile() {
 		return selected;
 	}
 

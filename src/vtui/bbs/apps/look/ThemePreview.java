@@ -10,7 +10,7 @@ import textmode.curses.ui.components.ListBox;
 import textmode.curses.ui.components.MenuItem;
 import textmode.curses.ui.components.Panel;
 import textmode.curses.ui.components.PopUp;
-import textmode.curses.ui.data.ListBoxModel;
+import textmode.curses.ui.data.ListModel;
 
 public class ThemePreview extends Panel<Component> {
 
@@ -30,7 +30,7 @@ public class ThemePreview extends Panel<Component> {
 		intAddChild(new Button("Button",curses(),new Position(3,1),10));
 		
 		
-		intAddChild(new ListBox(new ListBoxModel() {
+		intAddChild(new ListBox(new ListModel() {
 			private String[] items = {"Item1","Item2"};
 			public int getItemCount() {
 				return items.length;

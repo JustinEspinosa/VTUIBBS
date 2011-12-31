@@ -10,14 +10,14 @@ import textmode.curses.ui.Dimension;
 import textmode.curses.ui.Position;
 import textmode.curses.ui.components.ListBox;
 import textmode.curses.ui.components.Window;
-import textmode.curses.ui.data.ListBoxModel;
-import vtui.bbs.apps.login.LdapData;
+import textmode.curses.ui.data.ListModel;
+import vtui.bbs.util.domain.LdapData;
 
 
 public class UserListWindow extends Window {
 	
 	
-	private class UserListModel implements ListBoxModel{
+	private class UserListModel implements ListModel{
 
 		private List<Map<String,Object> >  ldapData;
 		

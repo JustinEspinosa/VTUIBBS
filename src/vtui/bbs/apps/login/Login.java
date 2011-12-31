@@ -22,6 +22,7 @@ import textmode.curses.ui.event.ActionEvent;
 import textmode.curses.ui.event.ActionListener;
 import textmode.curses.ui.event.RedrawEvent;
 import textmode.curses.ui.event.UiEvent;
+import vtui.bbs.apps.changepw.ChangePWFactory;
 import vtui.bbs.apps.chat.Chat;
 import vtui.bbs.apps.chat.ChatApplicationFactory;
 import vtui.bbs.apps.files.Files;
@@ -29,6 +30,8 @@ import vtui.bbs.apps.files.FilesApplicationFactory;
 import vtui.bbs.apps.look.LnFFactory;
 import vtui.bbs.apps.look.LookNFeel;
 import vtui.bbs.apps.look.ThemeRepository;
+import vtui.bbs.apps.pic.PictureViewer;
+import vtui.bbs.apps.pic.PictureViewerFactory;
 import vtui.bbs.apps.textedit.TextEditor;
 import vtui.bbs.apps.textedit.TextEditorFactory;
 import vtui.bbs.apps.userlist.UserList;
@@ -134,6 +137,7 @@ public class Login extends RootApplication implements ActionListener{
 			return;
 		}else{
 			
+			Screen.currentSession().put("UserPrincipal",logonUser);
 			session = BBSSessionUtils.loadSession(logonUser.getName());
 			Screen.currentSession().put("BBSSession", session);
 			
@@ -150,6 +154,10 @@ public class Login extends RootApplication implements ActionListener{
 					return new PrivUiEventProcesser(logonUser, e, plane);
 				}
 			});
+			
+			ChangePWFactory chPw = new ChangePWFactory();
+			getWindowManager().submitApplicationToMenu(chPw);
+			
 			ChatApplicationFactory chat = new ChatApplicationFactory(logonUser);
 			getWindowManager().addToAppPool(Chat.class,chat);
 			getWindowManager().submitApplicationToMenu(chat);
@@ -169,6 +177,11 @@ public class Login extends RootApplication implements ActionListener{
 			LnFFactory lnf = new LnFFactory();
 			getWindowManager().addToAppPool(LookNFeel.class,lnf);
 			getWindowManager().submitApplicationToMenu(lnf);	
+			
+			PictureViewerFactory pvf = new PictureViewerFactory();
+			getWindowManager().addToAppPool(PictureViewer.class,pvf);
+			getWindowManager().submitApplicationToMenu(pvf);	
+			
 			
 			startBBS();
 			super.start();

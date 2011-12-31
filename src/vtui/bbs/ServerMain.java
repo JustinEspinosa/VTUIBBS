@@ -1,11 +1,17 @@
 package vtui.bbs;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.text.DateFormat;
+import java.util.Calendar;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,12 +29,76 @@ import textmode.curses.net.TLSGeneralSocketIO;
 import textmode.curses.net.TelnetServer;
 import textmode.curses.term.io.TelnetIO;
 import textmode.curses.ui.util.SortedList;
+import textmode.data.PListPersistenceException;
+import textmode.data.xml.XMLPListPersistor;
+import textmode.data.xml.XMLPersistenceParameters;
 import vtui.bbs.ui.BBSScreenFactory;
 import vtui.bbs.ui.UITheme;
 
 @SuppressWarnings("unused")
 public class ServerMain {
+	
+	private static String generateName(String prefix,Date date){
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(date);
+		StringBuilder builder = new StringBuilder();
+		builder.append(prefix);
+		builder.append('.');
+		builder.append(cal.get(Calendar.YEAR));
+		builder.append('-');
+		builder.append(String.format("%02d",cal.get(Calendar.MONTH)));
+		builder.append('-');
+		builder.append(String.format("%02d",cal.get(Calendar.DAY_OF_MONTH)));
+		builder.append('_');
+		builder.append(String.format("%02d",cal.get(Calendar.HOUR_OF_DAY)));
+		builder.append('.');
+		builder.append(String.format("%02d",cal.get(Calendar.MINUTE)));
+		builder.append('.');
+		builder.append(String.format("%02d",cal.get(Calendar.SECOND)));
+		return builder.toString();
+	}
 
+	private static class FilesLoggingHandler extends Handler{
+		private static String FileName = "logs/vtuibbs.log";
+		private PrintWriter out;
+		
+		private FilesLoggingHandler(){
+			try {
+				File f = new File(FileName);
+				if(f.exists()){
+					Date fdate =  new Date(f.lastModified());
+					f.renameTo(new File(generateName(FileName,fdate)));
+					f = new File(FileName);
+				}
+				
+				out = new PrintWriter(f);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public void publish(LogRecord record) {
+			out.printf("%s - %s\n",(new Date()),record.getThreadID());
+			out.println(record.getMessage());
+			Throwable excp = record.getThrown();
+			if(excp!=null)
+				excp.printStackTrace(out);
+			out.flush();
+		}
+
+		@Override
+		public void flush() {
+			out.flush();
+		}
+
+		@Override
+		public void close() throws SecurityException {
+			out.close();
+		}
+		
+	}
+	
 	private static class LoggingHandler extends Handler{
 
 		private Map<String,List<Level>> blist = new HashMap<String, List<Level>>();
@@ -101,30 +171,25 @@ public class ServerMain {
 	 * @throws  
 	 */
 	public static void main(String[] args)  {
-		int port = 9003;
-		LoggingHandler handler = new LoggingHandler();
+		
+		//LoggingHandler handler = new LoggingHandler();
 		Logger logger = Logger.getAnonymousLogger();
-		logger.setLevel(Level.SEVERE);
 		
-		
-		/* 
-		 * 
-		 * handler.blacklist(TelnetIO.class, Level.FINE);
-		 * handler.blacklist(TLSGeneralSocketIO.class, Level.FINE);
-		 * handler.blacklist(TLSGeneralSocketIO.class, Level.FINER);
-		 * handler.blacklist(TelnetServer.class,Level.INFO);
-		 * handler.blacklist(ServerMain.class,Level.INFO);
-		 * 
-		 * logger.addHandler(handler);
-		 * 
-		 */
+		logger.setLevel(Level.ALL);
+		logger.setUseParentHandlers(false);
+		logger.addHandler(new FilesLoggingHandler());
 
-		
+		XMLPListPersistor<Configuration> ppersist = XMLPListPersistor.fromParameterFile("settings/config.xml", Configuration.class);
+		Configuration config = new Configuration();
 		try {
+			config = ppersist.read(config);
+			logger.setLevel(Level.parse(config.logLevel));
+			int port = config.port;
+		
 			
 			SSLContext ctx = prepareSSLContext();
 			
-			logger.severe("Visual Text-based User Interface BBS Server.");
+			logger.config("Visual Text-based User Interface BBS Server.");
 			
 			if(args.length>0){
 				try{
@@ -134,9 +199,9 @@ public class ServerMain {
 			
 			UITheme.applyColors();
 			
-			TelnetServer server = new TelnetServer(null, new DefaultCursesFactory( "termcap.src") , new BBSScreenFactory());
+			TelnetServer server = new TelnetServer(logger, new DefaultCursesFactory( "termcap.src") , new BBSScreenFactory());
 			
-			logger.severe("Listening on IP:0.0.0.0, TCP:"+port+" (TLS).");
+			logger.config("Listening on IP:0.0.0.0, TCP:"+port+" (TLS).");
 			
 			server.acceptConnections(port,ctx);
 			
@@ -158,6 +223,10 @@ public class ServerMain {
 			e.printStackTrace();
 			System.exit(-1);
 			
+		} catch (PListPersistenceException e) {
+			logger.log(Level.SEVERE,"Problem reading configuration",e);
+			e.printStackTrace();
+			System.exit(-1);
 		}
 
 

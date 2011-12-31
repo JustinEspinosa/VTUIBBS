@@ -9,13 +9,13 @@ import textmode.curses.ui.components.LineEdit;
 import textmode.curses.ui.components.ListBox;
 import textmode.curses.ui.components.MultiLineEdit;
 import textmode.curses.ui.components.Window;
-import textmode.curses.ui.data.ListBoxModel;
+import textmode.curses.ui.data.ListModel;
 import textmode.curses.ui.event.ActionEvent;
 import textmode.curses.ui.event.ActionListener;
 
 public class ChatWindow extends Window implements ChatClient{
 	
-	private class UserListModel implements ListBoxModel{
+	private class UserListModel implements ListModel{
 
 		private String[] users;
 		

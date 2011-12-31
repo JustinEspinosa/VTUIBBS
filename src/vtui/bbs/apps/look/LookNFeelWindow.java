@@ -12,7 +12,7 @@ import textmode.curses.ui.components.Container;
 import textmode.curses.ui.components.Label;
 import textmode.curses.ui.components.ListBox;
 import textmode.curses.ui.components.Window;
-import textmode.curses.ui.data.ListBoxModel;
+import textmode.curses.ui.data.ListModel;
 import textmode.curses.ui.event.ActionEvent;
 import textmode.curses.ui.event.ActionListener;
 import textmode.curses.ui.look.ColorTheme;
@@ -20,7 +20,7 @@ import textmode.curses.ui.look.ColorTheme;
 
 public class LookNFeelWindow extends Window {
 	
-	private class ThemeListModel implements ListBoxModel{
+	private class ThemeListModel implements ListModel{
 		public int getItemCount() {
 			return repository.size();
 		}

@@ -1,11 +1,49 @@
 package vtui.bbs.session;
 
-import textmode.data.PListPersistenceException;
-import textmode.data.xml.XMLPListPersistor;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
+import textmode.data.PListPersistenceException;
+import textmode.data.PropertyList;
+import textmode.data.PropertyListPersistor;
+import textmode.data.xml.XMLPListPersistor;
+import textmode.data.xml.XMLPersistenceParameters;
+
+
+@SuppressWarnings("unchecked")
 public final class BBSSessionUtils {
 	
-	private static XMLPListPersistor<BBSSession> persistor = XMLPListPersistor.fromParameterFile("settings/bbs/sessions.xml", BBSSession.class);
+	private static PropertyListPersistor<BBSSession> persistor;
+	
+	
+	static{
+		
+		XMLPListPersistor<SessionStorage> confLoader = new XMLPListPersistor<SessionStorage>(new XMLPersistenceParameters("settings/persistence.xml"));  
+		try {
+			SessionStorage config = confLoader.read(new SessionStorage());
+			Class<?> persClass = Class.forName(config.storageType);
+			Constructor<?> constr = persClass.getConstructor(PropertyList.class);
+			persistor = (PropertyListPersistor<BBSSession>) constr.newInstance(config.get(config.paramAttr, config.typeOf(config.paramAttr)));
+			
+		} catch (PListPersistenceException e) {
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	
 	public static BBSSession loadSession(String userId){
 		BBSSession keyS = new BBSSession();

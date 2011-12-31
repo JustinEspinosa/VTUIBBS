@@ -1,7 +1,5 @@
 package vtui.bbs.apps.textedit;
 
-import java.io.File;
-
 import textmode.curses.application.Application;
 import textmode.curses.ui.Dimension;
 import textmode.curses.ui.components.MenuItem;
@@ -10,6 +8,7 @@ import textmode.curses.ui.components.Window;
 import textmode.curses.ui.components.MessageBox.Result;
 import textmode.curses.ui.event.ActionEvent;
 import textmode.curses.ui.event.ActionListener;
+import textmode.util.FileAdapter;
 import vtui.bbs.util.FileOpenDialog;
 import vtui.bbs.util.FileSaveDialog;
 
@@ -116,7 +115,7 @@ public class TextEditor extends Application {
 			doSaveAs(win,dialog.getSelectedFile());
 	}
 	
-	private void doSaveAs(TextEditorWindow win,File selectedFile) {
+	private void doSaveAs(TextEditorWindow win,FileAdapter selectedFile) {
 		win.saveAs(selectedFile);
 	}
 
@@ -136,7 +135,7 @@ public class TextEditor extends Application {
 			openFile(dialog.getSelectedFile());
 	}
 	
-	public void openFile(File f){
+	public void openFile(FileAdapter f){
 		TextEditorWindow win = newWindow(f.getName());
 		win.load(f);
 	}
