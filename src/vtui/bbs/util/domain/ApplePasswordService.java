@@ -21,7 +21,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Date;
 import java.util.HashMap;
@@ -49,7 +48,7 @@ import textmode.xfer.util.Arrays.Endianness;
  * @author justin
  *
  */
-public class AppleSasl {
+public class ApplePasswordService {
 	
 	private class CASTInputStream extends InputStream{
 
@@ -199,11 +198,11 @@ public class AppleSasl {
 	
 	BigInteger modulus;
 	
-	public AppleSasl(String hostname,int port){
+	public ApplePasswordService(String hostname,int port){
 		passwordSrvHost = hostname;
 		passwordSrvPort = port;
 		
-		System.err.println("apple-sasl -> "+hostname+":"+port);
+		//System.err.println("apple-sasl -> "+hostname+":"+port);
 		
 		try {
 			factory = KeyFactory.getInstance("RSA");
@@ -294,51 +293,20 @@ public class AppleSasl {
 	private byte[] RSADo(byte[] src, Cipher cipher,int inBlkSize,int outBlkSize) throws ShortBufferException, IllegalBlockSizeException, BadPaddingException{
 		int rest = (src.length % inBlkSize);
 		int numBlocks = ((src.length-rest)/inBlkSize)+1;
+		
 		byte[] result = new byte[outBlkSize*numBlocks];
+		for(int i=0;i<result.length;++i)
+			result[i] = 0;
 		
-		int i, offsetOut = 0, loopend = src.length - rest;
-		for(i=0;i<loopend;i+=inBlkSize)
-			offsetOut += cipher.doFinal(src, i, inBlkSize, result, offsetOut);
-		
-		cipher.doFinal(src, i,src.length-i,result, offsetOut);
-
+		int i, offsetOut = 0, offsetIn = 0;
+		for(i=0;i<numBlocks-1;++i){
+			offsetOut += cipher.update(src, offsetIn, inBlkSize, result, offsetOut);
+			offsetIn  += inBlkSize;
+		}
+				
+		cipher.doFinal(src, offsetIn,src.length-offsetIn,result, offsetOut);
 
 		return result;
-	}
-	
-	private byte[] RSADecode(byte[] src){
-		Cipher cipher;
-		try {
-			String pKey = "fade071100000000eef55c22d761f65d66944171f3e7283da60798b0c0baf3539e34b62191f47cd274f01c57ff1a30be";
-			byte[] hPkey = unHex(pKey);
-			
-			factory.generatePrivate(new RSAPrivateKeySpec(modulus, new BigInteger(hPkey)));
-			
-			cipher = Cipher.getInstance("RSA");
-			
-			
-			cipher.init(Cipher.DECRYPT_MODE, (Key) serverKey);
-			int inBlkSize = 117, outBlkSize = 128;
-
-			return RSADo(src, cipher, inBlkSize,outBlkSize);
-			
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		} catch (NoSuchPaddingException e) {
-			e.printStackTrace();
-		} catch (InvalidKeyException e) {
-			e.printStackTrace();
-		} catch (IllegalBlockSizeException e) {
-			e.printStackTrace();
-		} catch (BadPaddingException e) {
-			e.printStackTrace();
-		} catch (ShortBufferException e) {
-			e.printStackTrace();
-		} catch (InvalidKeySpecException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} 
-		return null;
 	}
 	
 	
@@ -347,8 +315,6 @@ public class AppleSasl {
 		try {
 			
 			cipher = Cipher.getInstance("RSA");
-			
-			
 			cipher.init(Cipher.ENCRYPT_MODE, (Key) serverKey);
 			int inBlkSize = 117, outBlkSize = 128;
 
@@ -377,10 +343,10 @@ public class AppleSasl {
 
 		while(!gotnl && ((c=in.read())!=-1)){
 			switch(c){
-			case '\n': gotnl = true; break;
-			case '\0': break;
-			case '\r': break;
-			default  : builder.append((char)c);
+			case '\n': /*System.out.println("<LF>");*/gotnl = true; break;
+			case '\0': /*System.out.println("<NULL>");*/break;
+			case '\r': /*System.out.println("<CR>");*/break;
+			default  : /*System.out.printf("%02x",(byte)c);*/builder.append((char)c);
 			}
 		}
 		cleanUpIn();
@@ -388,7 +354,7 @@ public class AppleSasl {
 	}
 	
 	private String[] splitResult(String resp){
-		System.err.println(resp);
+		//System.err.println(resp);
 		int r = resp.indexOf(' ');
 		return new String[]{resp.substring(0,r),
 							resp.substring(r+1)};
@@ -404,7 +370,7 @@ public class AppleSasl {
 	}
 	
 	private String writeRead(String cmd) throws IOException{
-		System.err.println(cmd);
+		//System.err.println(cmd);
 		write(cmd);
 		return read();
 	}
@@ -427,21 +393,13 @@ public class AppleSasl {
 	
 	private byte[] getRandom(){
 		
-		Random rnd = new SecureRandom(Arrays.fromLong((new Date()).getTime(),Endianness.Big));
+		Random rnd = new SecureRandom(Arrays.fromLong((new Date()).getTime(),Endianness.Little));
 		byte[] rndb = new byte[16];
 		rnd.nextBytes(rndb);
 		return rndb;
 		
 	}
-	
-	/*
-	@SuppressWarnings("unused")
-	private void dumpBytes(byte[] dat){
-		for(int i=0;i<dat.length;++i)
-			System.out.printf("%02x",dat[i]);
-		System.out.println();
-	}*/
-	
+
 	private boolean readPublicKey() throws IOException{
 		String response = writeRead(buildCommand("RSAPUBLIC"));
 		String[] decodedResp = splitResult(response);
@@ -472,12 +430,7 @@ public class AppleSasl {
 			rndHashMine = MessageDigest.getInstance("MD5").digest(rndNum);
 		}catch (NoSuchAlgorithmException e) {}
 		
-		if(Arrays.equals(RSADecode(rndNum), rndNum)){
-			System.out.println("Exponent ok");
-		}else{
-			System.out.println("bad exponent");
-		}
-		
+			
 		if(Arrays.equals(rndHashServer, rndHashMine)){
 			castKey = rndNum;
 			enableCast();
@@ -555,6 +508,20 @@ public class AppleSasl {
 		return null;
 	}
 	
+	public String getIdByName(String username){
+		String cmd = buildCommand("GETIDBYNAME",username);
+		
+		try {
+			String response = writeRead(cmd);
+			String[] rslt = splitResult(response);
+			if( rslt[0].startsWith("+OK") )
+				return rslt[1];
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 	
 	public boolean authSASL(SaslClient client, String username){
 		try{
@@ -588,23 +555,38 @@ public class AppleSasl {
 		return false;
 	}
 	
-	public boolean authDHX(String userName,String password){
-		try{
-			DHX dhx = new DHX();
-			String challenge = startAuth(userName,"DHX",hexString(dhx.packUserNameWithMa(userName)));
+	public boolean authDHX(String slotid,String password){
+		try{			
+			//APPLE DHX
+			
+	        PWServiceDHX dhx = new PWServiceDHX(slotid);
+			String challenge = startAuth(slotid,"DHX",null);
 			if(challenge==null)
 				return false;
 			
-			challenge = continueAuth(dhx.packUserNameWithMa(userName));
+			challenge = continueAuth(dhx.clientStep1().getBytes());
 			if(challenge==null)
 				return false;
-			
-			challenge = continueAuth(dhx.continueLogin(unHex(challenge),password));
-			
+
+			try {
+				challenge = continueAuth(dhx.clientStep2(challenge,password).getBytes());
+				if(challenge==null)
+					return false;
+			} catch (InvalidKeyException e) {
+				e.printStackTrace();
+				return false;
+			} catch (IllegalStateException e) {
+				e.printStackTrace();
+				return false;
+			}
+
+			return true;
+	
 		}catch(IOException e){
 			e.printStackTrace();
 		}
 		return false;
+
 	}
 	
 	public boolean authDigestMd5(String userName,String password){
@@ -689,21 +671,14 @@ public class AppleSasl {
 	 * int32 newpwdlen
 	 * utf8[] newpwd
 	 */
-	public boolean changepass(String userName,String old,String newp){
-
-		StringBuilder builder = new StringBuilder();
-		builder.append(new String(Arrays.fromInt(userName.length(), Endianness.Big)));
-		builder.append(userName);
-		builder.append(new String(Arrays.fromInt(old.length(), Endianness.Big)));
-		builder.append(old);
-		builder.append(new String(Arrays.fromInt(newp.length(), Endianness.Big)));
-		builder.append(newp);
+	public boolean changepass(String userName,String password){
 		
-		String cmd = buildCommand("CHANGEPASS",userName,base64WithLen(builder.toString().getBytes()));
+		String cmd = buildCommand("CHANGEPASS",userName,password);
 		
 		try {
 			String response = writeRead(cmd);
-			return response.startsWith("+");
+			String[] rslt = splitResult(response);
+			return rslt[0].startsWith("+OK");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

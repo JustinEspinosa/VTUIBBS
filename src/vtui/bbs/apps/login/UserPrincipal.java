@@ -27,7 +27,7 @@ public class UserPrincipal implements Principal{
 		}
 		
 		public void handle(Callback[] callbacks) throws IOException,UnsupportedCallbackException {
-		
+
 			for (int i = 0; i < callbacks.length; i++) {
 				
 				if (callbacks[i] instanceof NameCallback) {
@@ -51,9 +51,9 @@ public class UserPrincipal implements Principal{
 	
 	
 	public static UserPrincipal authorize(String username,String password){
-
+		
 		try {
-			LoginContext ctx = new LoginContext(UserPrincipal.class.getName(), new Krbv5CbHandler(username, password));
+			LoginContext ctx = new LoginContext(UserPrincipal.class.getName(),new Subject(), new Krbv5CbHandler(username, password));
 			ctx.login();
 			return new UserPrincipal(ctx);
 		} catch (LoginException e) {
