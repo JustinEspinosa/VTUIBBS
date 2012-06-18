@@ -10,7 +10,7 @@ import vtui.bbs.util.domain.LdapData;
 
 public final class ChangePassword {
 	
-	public static boolean setPassword(UserPrincipal principal, String oldpwd,String password) {
+	public static boolean setPassword(UserPrincipal principal, String oldpwd, String password) {
 
 		DomainParameters domain = Screen.currentSession().getAsChecked("BBSDomain", DomainParameters.class);
 		LdapData ldap = new LdapData(domain.ldapHost, domain.ldapBaseDN);
@@ -19,7 +19,7 @@ public final class ChangePassword {
 			if(sasl.connect()){
 				if(sasl.beginCASTEncryption()){
 					String uid = ldap.getPWServerUserID(principal.getShortName());
-					if(sasl.authDHX(uid,password))
+					if(sasl.authDHX(uid,oldpwd))
 						return sasl.changepass(uid,password);
 				}
 			}

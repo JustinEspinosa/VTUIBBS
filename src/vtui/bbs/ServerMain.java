@@ -181,6 +181,14 @@ public class ServerMain {
 
 		XMLPListPersistor<Configuration> ppersist = XMLPListPersistor.fromParameterFile("settings/config.xml", Configuration.class);
 		Configuration config = new Configuration();
+		
+		//load FS handlers
+		try {
+			Class.forName("vtui.bbs.util.FileSystem");
+		} catch (ClassNotFoundException e1) {
+			e1.printStackTrace();
+		}
+		
 		try {
 			config = ppersist.read(config);
 			logger.setLevel(Level.parse(config.logLevel));

@@ -112,7 +112,7 @@ public class ChangePassword extends Application {
 				if(!vtui.bbs.util.ChangePassword.setPassword(Screen.currentSession().getAsChecked("UserPrincipal", UserPrincipal.class),dlg.getOldPassword(), dlg.getPassword()))
 					MessageBox.informUser("Failed", "Sorry", this, curses());
 				else
-					MessageBox.informUser("It worked", "Unexpectedly...", this, curses());
+					MessageBox.informUser("Change password", "It worked. Thanks.", this, curses());
 			}
 		} catch (InterruptedException e) {
 		}

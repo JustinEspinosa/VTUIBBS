@@ -25,14 +25,17 @@ import jcifs.smb.SmbFileOutputStream;
 public class JCifsFileSystemAdapter implements FileSystemAdapter {
 	
 	private Kerb5Authenticator kerbAuth;
-	private String rootUrl;
+	private URL rootUrl;
 	private String cwd;
 	private String root;	
 	
 	static{
+        Config.registerSmbURLHandler();
+
         Config.setProperty("jcifs.smb.client.capabilities",Kerb5Authenticator.CAPABILITIES);
         Config.setProperty("jcifs.smb.client.flags2",Kerb5Authenticator.FLAGS2);
         Config.setProperty("jcifs.smb.client.signingPreferred", "true");
+        
         FileSystem.registerAdapter("smb", JCifsFileSystemAdapter.class);
 	}
 	
@@ -41,14 +44,12 @@ public class JCifsFileSystemAdapter implements FileSystemAdapter {
 		UserPrincipal principal = Screen.currentSession().getAsChecked("UserPrincipal",UserPrincipal.class);
 		kerbAuth = new Kerb5Authenticator(principal.subject());
 		
-		rootUrl = url.getPath();
-		
-		cwd    = String.valueOf(PATHSEP);
-		root   = String.valueOf(PATHSEP);
+		rootUrl = url;
+		cwd     = String.valueOf(PATHSEP);
+		root    = String.valueOf(PATHSEP);
 	}
 	
 	private SmbFile realFile(String path) throws MalformedURLException, UnknownHostException{
-		
 		return new SmbFile(gluePathElements(rootUrl,path),kerbAuth);
 	}
 	
@@ -114,6 +115,10 @@ public class JCifsFileSystemAdapter implements FileSystemAdapter {
 	
 	public String cwd(){
 		return new String(cwd);
+	}
+	
+	private String gluePathElements(URL a,String b){
+		return gluePathElements(a.toExternalForm(),b);
 	}
 	
 	private String gluePathElements(String a,String b){
