@@ -2,6 +2,7 @@ package vtui.bbs;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.security.GeneralSecurityException;
@@ -65,13 +66,13 @@ public class ServerMain {
 		private FilesLoggingHandler(){
 			try {
 				File f = new File(FileName);
-				if(f.exists()){
+				if(f.exists() && f.length() > (10*1024*1024) ){
 					Date fdate =  new Date(f.lastModified());
 					f.renameTo(new File(generateName(FileName,fdate)));
 					f = new File(FileName);
 				}
 				
-				out = new PrintWriter(f);
+				out = new PrintWriter(new FileOutputStream(f,true));
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
@@ -195,7 +196,10 @@ public class ServerMain {
 			int port = config.port;
 		
 			
-			SSLContext ctx = prepareSSLContext();
+			SSLContext ctx = null;
+				
+			if(config.ssl)
+				ctx = prepareSSLContext();
 			
 			logger.config("Visual Text-based User Interface BBS Server.");
 			
@@ -209,7 +213,7 @@ public class ServerMain {
 			
 			TelnetServer server = new TelnetServer(logger, new DefaultCursesFactory( "termcap.src") , new BBSScreenFactory());
 			
-			logger.config("Listening on IP:0.0.0.0, TCP:"+port+" (TLS).");
+			logger.config("Listening on IP:0.0.0.0, TCP:"+port+(ctx!=null?" (TLS).":""));
 			
 			server.acceptConnections(port,ctx);
 			
